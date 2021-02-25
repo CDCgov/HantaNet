@@ -1325,7 +1325,6 @@ $(function() {
     rows.push({ fullname: 'demo/Hanta_L_Ref.microbetrace', name: 'Large' });
     rows.push({ fullname: 'demo/Hanta_M_Ref.microbetrace', name: 'Medium' });
     rows.push({ fullname: 'demo/Hanta_S_Ref.microbetrace', name: 'Small' });
-    rows.push({ fullname: 'demo/Hanta_ALL_Ref.microbetrace', name: 'All' });
     viewTable.setData(rows);
   }
   
