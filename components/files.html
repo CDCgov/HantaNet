@@ -411,7 +411,9 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
       });
     }
 
-    function addToTable(file) {
+    function addToTable(file, index) {
+      let existing = false;
+      if (typeof index !== 'undefined') existing = true;
       const extension = file.extension ? file.extension : filterXSS(file.name).split('.').pop().toLowerCase();
       //#291 restore to previous filetype selection if available
       const isFasta = 'fasta' == file.format || extension.indexOf('fas') > -1;
@@ -428,19 +430,19 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
             if (!headers.includes(safeKey)) headers.push(safeKey);
           });
         });
-        addTableTile(headers);
+        addTableTile(headers, existing);
       } else {
         Papa.parse(file.contents, {
           delimiter: ",",
           // newline: "\r\n",
           header: true,
           preview: 1,
-          complete: output => addTableTile(output.meta.fields.map(filterXSS))
+          complete: output => addTableTile(output.meta.fields.map(filterXSS), existing)
         });
       }
       //For the love of all that's good...
       //TODO: Rewrite this as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) or [something](https://reactjs.org/docs/react-component.html) or something.
-      function addTableTile(headers) {
+      function addTableTile(headers, existing) {
         let root = $('<div class="file-table-row"></div>').data('filename', file.name);
         let fnamerow = $('<div class="row w-100"></div>');
         $('<div class="file-name col"></div>')
@@ -564,6 +566,23 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
         });
         
         refit();
+
+        // do not allow base reference files to be changed
+        if(existing) {
+          $(`[name="options-${file.name}"]`).each(function() {
+            if(!$(this).is(':checked')) $(this).prop('disabled', true);
+          });
+
+          $(`[name="options-${file.name}"]`).closest(".file-name").find('a').each(function() {
+            $(this).off('click');
+          });
+          
+          const these = $(`[data-file='${file.name}'] select`);
+          $(these.get(0)).find('option:not(:selected)').prop('disabled', true);
+          $(these.get(1)).find('option:not(:selected)').prop('disabled', true);
+          $(these.get(2)).find('option:not(:selected)').prop('disabled', true);
+        }
+
       }
     }
 
