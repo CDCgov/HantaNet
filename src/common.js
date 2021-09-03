@@ -106,7 +106,7 @@
     "link-opacity": 0,
     "link-show-nn": false,
     "link-sort-variable": "distance",
-    "link-threshold": 0.015,
+    "link-threshold": 0.15,
     "link-tooltip-variable": "None",
     "link-width": 3,
     "link-width-variable": "None",
