@@ -95,7 +95,7 @@
         <div class="col-7">
           <select id="default-view" class="form-control form-control-sm" title="Which view should MicrobeTrace render first, once it has successfully processed the data?">
             <option value="2d_network" selected>2D Network</option>
-            <option value="pixi">Pixi</option>
+            <!-- <option value="pixi">Pixi</option> -->
             <option value="3d_network">3D Network</option>
             <option value="bubbles">Bubbles</option>
             <option value="table">Table</option>
@@ -411,9 +411,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
       });
     }
 
-    function addToTable(file, index) {
-      let existing = false;
-      if (typeof index !== 'undefined') existing = true;
+    function addToTable(file) {
       const extension = file.extension ? file.extension : filterXSS(file.name).split('.').pop().toLowerCase();
       //#291 restore to previous filetype selection if available
       const isFasta = 'fasta' == file.format || extension.indexOf('fas') > -1;
@@ -430,19 +428,19 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
             if (!headers.includes(safeKey)) headers.push(safeKey);
           });
         });
-        addTableTile(headers, existing);
+        addTableTile(headers);
       } else {
         Papa.parse(file.contents, {
           delimiter: ",",
           // newline: "\r\n",
           header: true,
           preview: 1,
-          complete: output => addTableTile(output.meta.fields.map(filterXSS), existing)
+          complete: output => addTableTile(output.meta.fields.map(filterXSS))
         });
       }
       //For the love of all that's good...
       //TODO: Rewrite this as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) or [something](https://reactjs.org/docs/react-component.html) or something.
-      function addTableTile(headers, existing) {
+      function addTableTile(headers) {
         let root = $('<div class="file-table-row"></div>').data('filename', file.name);
         let fnamerow = $('<div class="row w-100"></div>');
         $('<div class="file-name col"></div>')
@@ -496,9 +494,14 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
           const these = $(`[data-file='${file.name}'] select`);
           if(file.field1) {
             //#291 restore to previous variable selection if available
-            $(these.get(0)).val(file.field1);
-            $(these.get(1)).val(file.field2);
-            $(these.get(2)).val(file.field3);
+            if (type == 'node') {
+              $(these.get(0)).val(file.field1);
+              $(these.get(1)).val('None');
+            } else {
+              $(these.get(0)).val(file.field1);
+              $(these.get(1)).val(file.field2);
+              $(these.get(2)).val(file.field3);
+            } 
           } else {
             const a = type == 'node' ? ['ID', 'Id', 'id'] : ['SOURCE', 'Source', 'source'],
               b = type == 'node' ? ['SEQUENCE', 'SEQ', 'SEQS', 'Sequence', 'Seqs', 'sequence', 'seq', 'seqs'] : ['TARGET', 'Target', 'target'],
@@ -564,25 +567,8 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
           refit();
           $('#launch').prop('disabled', false);
         });
-        
+
         refit();
-
-        // do not allow base reference files to be changed
-        if(existing) {
-          $(`[name="options-${file.name}"]`).each(function() {
-            if(!$(this).is(':checked')) $(this).prop('disabled', true);
-          });
-
-          $(`[name="options-${file.name}"]`).closest(".file-name").find('a').each(function() {
-            $(this).off('click');
-          });
-          
-          const these = $(`[data-file='${file.name}'] select`);
-          $(these.get(0)).find('option:not(:selected)').prop('disabled', true);
-          $(these.get(1)).find('option:not(:selected)').prop('disabled', true);
-          $(these.get(2)).find('option:not(:selected)').prop('disabled', true);
-        }
-
       }
     }
 
@@ -1156,6 +1142,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
           let newLinks = 0;
           let newNodes = 0;
           const tree = patristic.parseNewick(file.contents);
+          temp.tree = tree;
           let m = tree.toMatrix(), matrix = m.matrix, labels = m.ids.map(filterXSS), n = labels.length;
           for (let i = 0; i < n; i++) {
             const source = labels[i];
@@ -1228,48 +1215,5 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
         MT.runHamsters();
       };
     };
-
-    // Test autoload csv files
-    //
-    // function autoLoadFile(){
-    //     $.get('demo/fas_test_33.fasta').then(function(data) {
-    //     var blob = new Blob([data]);
-    //     const file = new File([blob], 'fas_test_33.fasta', {lastModifiedDate: new Date(), type: blob.type});
-    //     console.log(file);
-    //     console.log('file name='+file.name);
-    //     console.log('file contents='+file.contents);
-
-    //     processFile(file);
-
-    //     $('#launch').trigger('click');
-    //   });
-    // }
-
-    // function autoLoadFiles(){       
-    //   let file1, file2;
-      
-    //   let promise1 = $.get('demo/Hozhoni Linelist for MicrobeTrace_Nov9.csv').then(function(data) {
-    //     var blob = new Blob([data]);
-    //     file1 = new File([blob], 'Hozhoni Linelist for MicrobeTrace_Nov9.csv', {lastModifiedDate: new Date(), type: blob.type}); 
-    //   });
-    //   let promise2 = $.get('demo/Hozhoni MicrobeTrace_Contacts.csv').then(function(data) {
-    //     var blob = new Blob([data]);
-    //     file2 = new File([blob], 'Hozhoni MicrobeTrace_Contacts.csv', {lastModifiedDate: new Date(), type: blob.type}); 
-    //   });
-      
-    //   Promise.all([promise1, promise2]).then((values) => {
-    //     let files = [];
-    //     files.push(file1);
-    //     files.push(file2);
-    //     processFiles(files);
-
-    //     $('#launch').trigger('click'); 
-    //   });
-    // }
-
-    // $window
-    //    .on('autoLoadFiles', autoLoadFiles())
-    //    .on('autoLoadFile', autoLoadFile());
-
   })();
 </script>
