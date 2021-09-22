@@ -219,8 +219,8 @@ svg#link-threshold-sparkline {
 }
 #polygon-color-table-wrapper {
   position: absolute;
-  top: 893px;
-  right: 10px;
+  top: 73px;
+  left: 10px;
   z-index: 999;
   max-height: 400px;
   overflow-y: scroll;
@@ -247,6 +247,9 @@ svg#link-threshold-sparkline {
   background: transparent;
   border: none;
   padding: 0;
+}
+.polygonText {
+  stroke: red;
 }
 #color-transparency-wrapper {
   display: none;
@@ -596,8 +599,8 @@ button.btn,
 }
 #node-symbol-table-wrapper {
   position: absolute;
-  top: 457px;
-  left: 10px;
+  top: 457px !important;
+  left: 10px !important;
   z-index: 999;
   max-height: 400px;
   overflow-y: scroll;
@@ -607,6 +610,7 @@ button.btn,
   background-color: #f8f9fa !important;
 }
 #node-symbol-table-draghandle {
+  display: none;
   width: 100%;
   text-align: center;
 }
@@ -626,6 +630,11 @@ button.btn,
 .nodes path {
   cursor: -webkit-grab;
 }
+
+.clusters path {
+  cursor: -webkit-grab;
+}
+
 .nodes path.selected {
   stroke: #ff8300;
   stroke-width: 4px;
@@ -703,6 +712,7 @@ button.btn,
   height: 100%;
   background: #d3d9db;
   cursor: -webkit-grab;
+  z-index: 1;
 }
 #map:hover:active {
   cursor: hold;
@@ -718,6 +728,19 @@ button.btn,
 }
 .leaflet-control-attribution {
   display: none;
+}
+
+.OSM-credit {
+  position: absolute;
+  bottom: 7px;
+  left: 50px;
+  z-index: 2;
+}
+
+.OSM-credit a {
+  color: #4e8bb7 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
 }
 
 /* Sequences */
