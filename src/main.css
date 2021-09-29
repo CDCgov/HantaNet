@@ -599,8 +599,8 @@ button.btn,
 }
 #node-symbol-table-wrapper {
   position: absolute;
-  top: 457px !important;
-  left: 10px !important;
+  top: 457px;
+  left: 10px;
   z-index: 999;
   max-height: 400px;
   overflow-y: scroll;
