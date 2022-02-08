@@ -1,4 +1,9 @@
-**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/organization/mission.htm).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise. 
+
+# HantaNet [![MicrobeTrace DOI](https://img.shields.io/badge/DOI-10.1101%2F2020.07.22.216275-blue)](https://doi.org/10.1101/2020.07.22.216275)
+
+*The Visualization Multitool for Molecular Epidemiology and Bioinformatics - with focus on the Hanta Virus*
+
+Developed By ([some folks](https://github.com/CDCgov/MicrobeTrace/blob/master/humans.txt) at) CDC
 
 ## Access Request, Repo Creation Request
 
