@@ -253,6 +253,9 @@
       nodeAlphas: [1],
       nodeColors: [d3.schemeCategory10[0]].concat(d3.schemeCategory10.slice(2)),
       nodeColorsTable: {},
+      nodeColorsTableHistory: {
+        "null" : "#EAE553"
+      },
       nodeColorsTableKeys: {},
       linkColorsTable: {},
       linkColorsTableKeys: {},
@@ -1566,7 +1569,7 @@
     
     let nodeColors;
     if(session.style.nodeColorsTable[variable]) {
-      nodeColors = session.style.nodeColorsTable[variable];
+      nodeColors = [...session.style.nodeColorsTable[variable]];
     } else {
       nodeColors = session.style.nodeColorsTable[variable] = [...session.style.nodeColors];
     }
@@ -1583,7 +1586,7 @@
       } else {
         aggregates[dv] = 1;
       }
-    }
+    }    
     let values = Object.keys(aggregates);
     if (values.length > nodeColors.length) {
       let colors = [];
@@ -1593,12 +1596,38 @@
       }
       nodeColors = colors;
     }
+     
     if(!session.style.nodeAlphas) session.style.nodeAlphas = new Array(values.length).fill(1);
     if (values.length > session.style.nodeAlphas.length) {
       session.style.nodeAlphas = session.style.nodeAlphas.concat(
         new Array(values.length - session.style.nodeAlphas.length).fill(1)
       );
     }
+
+    let keys = Object.keys(session.style.nodeColorsTableHistory)
+
+    //Update Table History
+    values.forEach( (val, ind) => {
+
+      // Get index of value in history
+      let index = keys.findIndex(key => key === val);
+
+      //If found in history set previous color
+      if (index !== -1) {
+
+        // Update color of where value currently is
+        nodeColors[ind] = session.style.nodeColorsTableHistory[val];
+
+      //If value not found in history, add it
+      } else {
+        session.style.nodeColorsTableHistory[val] = nodeColors[ind];
+      }
+
+      if (val === "null"){
+        nodeColors[ind] = "#EAE553"
+      }
+
+    });
 
     if (session.style.widgets["node-timeline-variable"] == 'None') {
       session.style.nodeColorsTableKeys[variable] = values;

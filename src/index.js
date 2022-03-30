@@ -529,6 +529,9 @@ $(function() {
             let key = session.style.nodeColorsTableKeys[variable].findIndex( k => k === value);
             session.style.nodeColorsTable[variable].splice(key, 1, this.value);
             
+            // Update history with new color
+            session.style.nodeColorsTableHistory[session.style.nodeColorsTableKeys[variable][key]] = this.value;
+
             if (session.style.widgets["node-timeline-variable"] == 'None') {
               temp.style.nodeColorMap = d3
                 .scaleOrdinal(session.style.nodeColorsTable[variable])
