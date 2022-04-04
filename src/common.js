@@ -1264,17 +1264,19 @@
   };
   
   MT.titleize = title => {
-    let small = title.toLowerCase().replace(/_/g, " ");
-    if (small == "null") return "(Empty)";
-    if (small == "id" || small == " id") return "ID";
-    if (small == "tn93") return "TN93";
-    if (small == "snps") return "SNPs";
-    if (small == "2d network") return "2D Network";
-    if (small == "3d network") return "3D Network";
-    if (small == "geo map") return "Map";
-    if (small == "timeline") return "Epi Curve";
-    if (small == "nn") return "Nearest Neighbor";
-    return small.replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+    // TODO: Uncomment if wish for titelize to be back
+    // let small = title.toLowerCase().replace(/_/g, " ");
+    // if (small == "null") return "(Empty)";
+    // if (small == "id" || small == " id") return "ID";
+    // if (small == "tn93") return "TN93";
+    // if (small == "snps") return "SNPs";
+    // if (small == "2d network") return "2D Network";
+    // if (small == "3d network") return "3D Network";
+    // if (small == "geo map") return "Map";
+    // if (small == "timeline") return "Epi Curve";
+    // if (small == "nn") return "Nearest Neighbor";
+    // return small.replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+    return title;
   };
   
   MT.tagClusters = () => {
