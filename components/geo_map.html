@@ -1,3 +1,4 @@
+<div class="OSM-credit">Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.</div>
 <div id="map" class="h-100"></div>
 
 <div class="view-controls">
@@ -367,17 +368,19 @@
     ga('set', 'title', 'Geo Map View');
     ga('send', 'pageview');
 
+    if (session.data.nodes.length > 0) {
     // save existing session styles
-    temp.mapData['map-countries-show'] = session.style.widgets['map-countries-show'];
-    temp.mapData['map-states-show'] = session.style.widgets['map-states-show'];
-    temp.mapData['map-counties-show'] = session.style.widgets['map-counties-show'];
-    temp.mapData['map-basemap-show'] = session.style.widgets['map-basemap-show'];
-    temp.mapData['map-satellite-show'] = session.style.widgets['map-satellite-show'];
-    session.style.widgets['map-countries-show']= true;
-    session.style.widgets['map-states-show']= true;
-    session.style.widgets['map-counties-show']= false;
-    session.style.widgets['map-basemap-show']= false;
-    session.style.widgets['map-satellite-show']= false;    
+      temp.mapData['map-countries-show'] = session.style.widgets['map-countries-show'];
+      temp.mapData['map-states-show'] = session.style.widgets['map-states-show'];
+      temp.mapData['map-counties-show'] = session.style.widgets['map-counties-show'];
+      temp.mapData['map-basemap-show'] = session.style.widgets['map-basemap-show'];
+      temp.mapData['map-satellite-show'] = session.style.widgets['map-satellite-show'];
+      session.style.widgets['map-countries-show']= true;
+      session.style.widgets['map-states-show']= true;
+      session.style.widgets['map-counties-show']= false;
+      session.style.widgets['map-basemap-show']= false;
+      session.style.widgets['map-satellite-show']= false;    
+    }
     
     if (navigator.onLine) {
       $('#map').parent().find('.ifOnline').css('display', 'flex');
@@ -411,9 +414,15 @@
       center: [80, 0],
       zoom: 3,
       zoomControl: false,
-      maxZoom: 20,
+      maxZoom: 15,
+      minZoom: 2,
       preferCanvas: true
     });
+
+    // var gl = L.mapboxGL({
+    //   accessToken: '{token}',
+    //   style: 'pk.eyJ1IjoiYWFib3lsZXMiLCJhIjoiY2o4b3QxNmtjMDhwNjMzcno4dDd1NnVraSJ9.BkjEa6NM7o7KeTaTHOaIGg'
+    // }).addTo(map);
 
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
@@ -540,6 +549,8 @@
       if (callback) callback();
     }
 
+    var isLat = true;
+
     function drawNodes() {
       if(!$('#map').length) return;
       layers.nodes.remove();
@@ -552,7 +563,11 @@
       var n = nodes.length;
       for (var i = 0; i < n; i++) {
         var d = nodes[i];
-        if (!d._jlat || !d._jlon) continue;
+        if (!d._jlat || !d._jlon) {
+          console.log('no lat');
+          isLat = false;
+          continue;
+        } 
         features.push(L.circleMarker(L.latLng(d._jlat, d._jlon), {
           weight: 1,
           opacity: opacity,
@@ -682,6 +697,10 @@
         const { name } = file;
         if (name.endsWith("json")) {
           const layerName = name.split('.').slice(0, -1).join('.').toLowerCase();
+          let encodedLayerName = layerName.replace(/[\u00A0-\u9999<>(){}`"\&]/g, function(i) {
+              return '&#'+i.charCodeAt(0)+';';
+            });
+          encodedLayerName.trim();
           const reader = new FileReader();
           reader.onload = function (event2) {
             temp.mapData[layerName] = JSON.parse(event2.target.result);
@@ -697,7 +716,7 @@
                 layers[layerName].setStyle(f => ({ color: e.target.value }));
               })
             );
-            var nameCell = $(`<div class="col-9">${layerName}</div>`).prepend(
+            var nameCell = $(`<div class="col-9">${encodedLayerName}</div>`).prepend(
               $('<a href="#" class="oi oi-circle-x align-middle p-1" title="Remove this file"></a>').on('click', function () {
                 nameCell.remove();
                 colorCell.remove();
@@ -980,20 +999,27 @@
       delete temp.mapData['map-counties-show'];
       delete temp.mapData['map-basemap-show'];
       delete temp.mapData['map-satellite-show'];  
-      map.flyToBounds(layers.nodes.getBounds());
+      console.log('layers: ', layers.nodes);
+      if(isLat) {
+        map.flyToBounds(layers.nodes.getBounds());
+      }
     }
 
     setTimeout(function () {
-      matchCoordinates(function () {
-        rerollNodes();
-        drawLinks();
-        drawNodes();
-        initialLoadUpdate();
-      });
-      
-      if (layers.nodes.length) map.flyToBounds(layers.nodes.getBounds());
-      
-    }, 40);
+        if (session.data.nodes.length > 0) {
+          matchCoordinates(function () {
+          rerollNodes();
+          drawLinks();
+          drawNodes();
+          initialLoadUpdate();
+        });
+
+        if(isLat) {
+          map.flyToBounds(layers.nodes.getBounds());
+        }
+      }
+            
+    }, 500);
 
   })();
 </script>
