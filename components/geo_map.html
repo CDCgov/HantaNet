@@ -442,6 +442,13 @@
 
     function matchCoordinates(callback, norefresh) {
       if (!norefresh) nodes = MT.getVisibleNodes();
+
+      // Reset Map
+      nodes.forEach(n => {
+        n._lat = null;
+        n.lon = null;
+      });
+
       if (session.style.widgets['map-field-country'] !== 'None') {
         if (!temp.mapData.countries) {
           getMapData('countries.json', () => matchCoordinates(callback, true));
