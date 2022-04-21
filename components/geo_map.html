@@ -493,13 +493,18 @@
               parseFloat(c.properties.fips) == parseFloat(n[cval]));
           });
           }
-          if (county) {
+
+          // If no state is associated pick given county
+          if (county && !n['State']) {
+           
             n._lat = county.properties._lat;
             n._lon = county.properties._lon;
             return;
-          }
-          if (n[sval]) {
-            var state = temp.mapData.states.features.find(s => s.properties.usps == n[sval].toUpperCase() || s.properties.name.toLowerCase().includes(n[sval].toLowerCase()));
+
+          // Check if state exists since can have multiple counties with same name
+          } else if (county && n['State']) {
+            var state = temp.mapData.states.features.find(s => s.properties.usps == n['State'].toUpperCase() || s.properties.name.toLowerCase().includes(n['State'].toLowerCase()));
+
             county = temp.mapData.counties.features.find(c => {
               var small = n[cval].toLowerCase();
               return c.properties.state == state.properties.usps && (
