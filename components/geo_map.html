@@ -486,27 +486,33 @@
         var cval = session.style.widgets['map-field-county'];
         nodes.forEach(n => {
           var county;
-          county = temp.mapData.counties.features.find(c => {
-            return (c.properties.fips == n[cval] ||
+          // If node doesnt have county, no point in checking
+          if(n[cval]) {
+            county = temp.mapData.counties.features.find(c => {
+            return (c.properties.name.toLowerCase() == n[cval].toLowerCase() ||
               parseFloat(c.properties.fips) == parseFloat(n[cval]));
           });
+          }
           if (county) {
             n._lat = county.properties._lat;
             n._lon = county.properties._lon;
             return;
           }
-          var state = temp.mapData.states.features.find(s => s.properties.usps == n[sval].toUpperCase() || s.properties.name.toLowerCase().includes(n[sval].toLowerCase()));
-          county = temp.mapData.counties.features.find(c => {
-            var small = n[cval].toLowerCase();
-            return c.properties.state == state.properties.usps && (
-              c.properties.name.includes(small) ||
-              small.includes(c.properties.name)
-            );
-          });
-          if (county) {
-            n._lat = county.properties._lat;
-            n._lon = county.properties._lon;
+          if (n[sval]) {
+            var state = temp.mapData.states.features.find(s => s.properties.usps == n[sval].toUpperCase() || s.properties.name.toLowerCase().includes(n[sval].toLowerCase()));
+            county = temp.mapData.counties.features.find(c => {
+              var small = n[cval].toLowerCase();
+              return c.properties.state == state.properties.usps && (
+                c.properties.name.includes(small) ||
+                small.includes(c.properties.name)
+              );
+              });
+              if (county) {
+                n._lat = county.properties._lat;
+                n._lon = county.properties._lon;
+            }
           }
+          
         });
       }
       if (session.style.widgets['map-field-zipcode'] !== 'None') {
