@@ -677,6 +677,11 @@ button.btn,
   font: bold 20px sans-serif;
 }
 
+.select2-results__option {
+  display: flex !important;
+  height: 34px !important;
+}
+
 /* 3D Network */
 .graph-nav-info {
   display: none;
