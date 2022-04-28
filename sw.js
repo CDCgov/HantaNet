@@ -15,6 +15,8 @@ self.addEventListener('install', function(event) {
         'vendor/bioseq.min.js',
         'vendor/papaparse.min.js',
         'vendor/patristic.min.js',
+        'vendor/select2.min.js',
+        'vendor/select2.min.css',
         'vendor/tn93.min.js',
         'dist/bundle.primary.css',
         'dist/bundle.primary.js',
