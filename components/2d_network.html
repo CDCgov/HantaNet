@@ -1503,7 +1503,7 @@ Note that this may cause slow performance on larger networks.">
         }
 
       });
-
+      
       // Hide color table if cannot change color since all symbols are images
       if(onlyCustomSymbolsDisplaying) {
 
@@ -1805,7 +1805,6 @@ Note that this may cause slow performance on larger networks.">
           selector = $('<select></select>').append(options).val(temp.style.nodeSymbolMap(v)).on('change', function (e) {
             nodeSymbols.splice(i, 1, this.value);
             temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
-            console.log('on change 1');
             // make update during timeline - also need to update saved nodeSymbols
             if (session.style.widgets["node-timeline-variable"] != 'None') {
               let key = session.style.nodeSymbolsTableKeys[variable].findIndex( k => k === v);
@@ -1820,8 +1819,6 @@ Note that this may cause slow performance on larger networks.">
           selector = $('<select id="' + count +'-symbol"></select>').append(options).val(temp.style.nodeSymbolMap(v)).on('change', function (e) {
             nodeSymbols.splice(i, 1, this.value);
             temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
-
-            console.log('on change 2');
 
             // make update during timeline - also need to update saved nodeSymbols
             if (session.style.widgets["node-timeline-variable"] != 'None') {
