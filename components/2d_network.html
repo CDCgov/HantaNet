@@ -733,10 +733,13 @@ Note that this may cause slow performance on larger networks.">
       const start = Date.now();
       let newNodes = MT.getVisibleNodes(true);
       let oldNodes;
-      if(session.style.widgets["timeline-date-field"] != 'None')
+      if(session.style.widgets["timeline-date-field"] != 'None'){
         oldNodes = session.network.timelineNodes;
-      else
+      }
+      else {
         oldNodes = session.network.nodes;
+      }
+
       
       if (newNodes.length === 0 && session.style.widgets["timeline-date-field"] == 'None') return;
       
@@ -1767,14 +1770,17 @@ Note that this may cause slow performance on larger networks.">
           session.style.nodeSymbolsTable[variable] = nodeSymbolsTL;
         }        
 
-        let key;
-        let tempNodeSymbols=[];
-        for(let v of values) {
-          let table = session.style.nodeSymbolsTableKeys[variable];
-          key = table.findIndex( k => k === v);
-          tempNodeSymbols.push(nodeSymbols[key]);
-        }
-        nodeSymbols = tempNodeSymbols;
+
+        // TODO: Asses whether this is needed
+        // let key;
+        // let tempNodeSymbols=[];
+        // for(let v of values) {
+        //   let table = session.style.nodeSymbolsTableKeys[variable];
+        //   key = table.findIndex( k => k === v);
+        //   tempNodeSymbols.push(nodeSymbols[key]);
+        // }
+        // console.log('temp node smb: ', tempNodeSymbols);
+        // nodeSymbols = tempNodeSymbols;
       }
       
       temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
@@ -1796,32 +1802,19 @@ Note that this may cause slow performance on larger networks.">
         'templateResult': custom_template,
         }
 
+      // Get shown symbols currently based on number of values to check if custom icon set
+      let shownSymbols = nodeSymbols.slice(0,values.length)
+
       values.forEach(function (v, i) {
 
-        // Check if symbol is custom - get the index for later use
-        let customSymbolIndex = customSymbols.findIndex(symbol => symbol.split('.').slice(0, -1).join('.') === v);
+        let containsCustomSymbol = false;
 
-        // Initialize selector to be updated based on custom vs non custom symbol
-        let selector;
+        customSymbols.forEach(symbol => {
+          let symb = symbol.split('.').slice(0, -1).join('.');
+          containsCustomSymbol = shownSymbols.includes(symb);
+        });
 
-        // Using built-in symbol
-        if (customSymbolIndex === -1) {
-
-          selector = $('<select></select>').append(options).val(temp.style.nodeSymbolMap(v)).on('change', function (e) {
-            nodeSymbols.splice(i, 1, this.value);
-            temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
-            // make update during timeline - also need to update saved nodeSymbols
-            if (session.style.widgets["node-timeline-variable"] != 'None') {
-              let key = session.style.nodeSymbolsTableKeys[variable].findIndex( k => k === v);
-              session.style.nodeSymbolsTable[variable].splice(key, 1, this.value);
-            }
-            redrawNodes();
-          });
-
-        // Using custom symbol
-        } else {
-
-          selector = $('<select id="' + count +'-symbol"></select>').append(options).val(temp.style.nodeSymbolMap(v)).on('change', function (e) {
+        let selector = $('<select id="' + count +'-symbol"></select>').append(options).val(temp.style.nodeSymbolMap(v)).on('change', function (e) {
             nodeSymbols.splice(i, 1, this.value);
             temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
 
@@ -1832,7 +1825,8 @@ Note that this may cause slow performance on larger networks.">
             }
             redrawNodes();
           });
-        }
+
+
         
         let cell = $('<td></td>').append(selector);
         let row = $(
