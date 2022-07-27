@@ -78,3 +78,17 @@ Please refer to [CDC's Template Repository](https://github.com/CDCgov/template)
 for more information about [contributing to this repository](https://github.com/CDCgov/template/blob/master/CONTRIBUTING.md),
 [public domain notices and disclaimers](https://github.com/CDCgov/template/blob/master/DISCLAIMER.md),
 and [code of conduct](https://github.com/CDCgov/template/blob/master/code-of-conduct.md).
+
+## Adding custom symbols (png, jpg, and svg) to be used in the github web application - Collaborators only
+1. Switch to the dev branch of this repo.
+2. In the project, navigate to the img/custom-symbols folder.
+3. Click "Add file" -> click "Upload files".
+4. Add/Drag n Drop the desired img files and commit changes.
+5. Within the same folder, click on the symbols.json to open it.
+6. Click the edit (pencil) icon.
+7. Add the new file names to the list in the same format as the current ones (i.e "custom-icon.png").
+8. ENSURE to add commas after file names that are not the last one in the list.  The last one should not have a comma.
+9. Commit changes and give about 10-15 minutes for the webapp to build and check to see if the new symbols are available.
+
+## Adding custom symbols (png, jpg, and svg) to be used in the github web application - External Request
+Email desired symbol files to Roxy Cintron (vrw7@cdc.gov) with request
