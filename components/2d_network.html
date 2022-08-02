@@ -1760,7 +1760,7 @@ Note that this may cause slow performance on larger networks.">
               // Value was added/new
               } else if (nodeSymbols[i] !== oldNodeSymbols[ind]) {
                 // Insert node symbol at location
-                nodeSymbols.splice(i, 0,oldNodeSymbols[values.length + 1]);
+                nodeSymbols.splice(i, 0,oldNodeSymbols[Math.floor(Math.random() * oldNodeSymbols.length)]);
               }
             }
           });
