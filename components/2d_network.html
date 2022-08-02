@@ -1671,6 +1671,7 @@ Note that this may cause slow performance on larger networks.">
     $('#node-symbol-variable').on('change', function () {
       if($(this).find("option").length <= 1) return false;    
       let variable = this.value;
+      let oldVariable = settings['node-symbol-variable'];
       settings['node-symbol-variable'] = variable;
       let wrapper = $('#node-symbol-table-wrapper');
       let table = wrapper.find('table');
@@ -1682,6 +1683,9 @@ Note that this may cause slow performance on larger networks.">
         redrawNodes();
         return;
       }
+
+      // Get previous keys to maintain changes
+      let previousKeys = _.cloneDeep(session.style.nodeSymbolsTableKeys[variable]);
 
       let nodeSymbols;
       if(session.style.nodeSymbolsTable[variable]) {
@@ -1730,11 +1734,43 @@ Note that this may cause slow performance on larger networks.">
         }
         nodeSymbols = symbols;
       }
+
+      // Get old node symbols before modifying new to match previous colors
+      let oldNodeSymbols = _.cloneDeep(nodeSymbols);
+
       values.sort(function (a, b) {return aggregates[b] - aggregates[a];}); //#297
+      
+      // If same shape variable and value inserted/removed into table
+      if (oldVariable === variable && previousKeys != values) {
+
+        // Item added or removed to table
+        if (values.length !== previousKeys.length){
+
+          values.forEach((key, i) => {
+
+            // If key not at same index, find it in previous
+            if(key !== previousKeys[i]){
+              // Get position
+              let ind = previousKeys.findIndex(k => {return k == key});
+              
+              // if found index of old key and its not at the back
+              if (ind !== -1 && nodeSymbols[i] !== oldNodeSymbols[ind] && i !== values.length - 1) {
+                // Add it to the node symbols position
+                nodeSymbols.splice(i, 0, oldNodeSymbols[ind]);
+              // Value was added/new
+              } else if (nodeSymbols[i] !== oldNodeSymbols[ind]) {
+                // Insert node symbol at location
+                nodeSymbols.splice(i, 0,oldNodeSymbols[values.length + 1]);
+              }
+            }
+          });
+      }
+
+    }
 
       if (session.style.widgets["node-timeline-variable"] == 'None') {
         session.style.nodeSymbolsTableKeys[variable] = values;
-        session.style.nodeSymbolsTable[variable] = nodeSymbols;
+        session.style.nodeSymbolsTable[variable] = nodeSymbols;        
       } else {
         
         // During timeline mode, user Pause and switch to a different Node Symbol but nodeSymbolsTableKeys[variable] is not available
@@ -1775,8 +1811,11 @@ Note that this may cause slow performance on larger networks.">
         // let key;
         // let tempNodeSymbols=[];
         // for(let v of values) {
+        //   console.log('value: ', v);
         //   let table = session.style.nodeSymbolsTableKeys[variable];
+        //   console.log('table: ', table);
         //   key = table.findIndex( k => k === v);
+        //   conole.log('key: ', key, nodeSymbols[key])
         //   tempNodeSymbols.push(nodeSymbols[key]);
         // }
         // console.log('temp node smb: ', tempNodeSymbols);
