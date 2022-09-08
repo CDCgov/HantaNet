@@ -178,7 +178,11 @@ $(function() {
     $("#exit-modal").modal();
   });
 
-  $("#exit-button").on("click", MT.reset);
+  $("#exit-button").on("click", function(e) {
+    MT.reset;
+    MT.launchView("files");
+    e.preventDefault();
+  });
 
   $(".viewbutton").on("click", function(e){
     e.preventDefault();

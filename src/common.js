@@ -376,7 +376,14 @@
     if(temp.matrix[newLink.source][newLink.target]){
       let oldLink = temp.matrix[newLink.source][newLink.target];
       let origin = uniq(newLink.origin.concat(oldLink.origin));
-      Object.assign(oldLink, newLink, {origin: origin});
+
+      if (oldLink.hasDistance) {
+        newLink.distanceOrigin = oldLink.distanceOrigin
+      }
+      oldLink["origin"] = myorigin;
+      newLink["origin"] = myorigin;
+
+      Object.assign(newLink, oldLink);
       linkIsNew = 0;
     } else if(temp.matrix[newLink.target][newLink.source]){
       console.warn("This scope should be unreachable. If you're using this code, something's wrong.");
@@ -385,14 +392,27 @@
       Object.assign(oldLink, newLink, {origin: origin});
       linkIsNew = 0;
     } else {
-      newLink = Object.assign({
-        index: sdlinks.length,
-        source: "",
-        target: "",
-        visible: false,
-        cluster: 1,
-        origin: []
-      }, newLink);
+      if (newLink.hasDistance) {
+        newLink = Object.assign({
+          index: sdlinks.length,
+          source: "",
+          target: "",
+          visible: false,
+          cluster: 1,
+          origin: [],
+          hasDistance: true
+        }, newLink);
+      } else {
+        newLink = Object.assign({
+          index: sdlinks.length,
+          source: "",
+          target: "",
+          visible: false,
+          cluster: 1,
+          origin: [],
+          hasDistance: false
+        }, newLink);
+      }
       temp.matrix[newLink.source][newLink.target] = newLink;
       temp.matrix[newLink.target][newLink.source] = newLink;
       sdlinks.push(newLink);
@@ -519,6 +539,7 @@
       oldSession.style
     );
     session.layout = oldSession.layout;
+    layout.root.removeChild(layout.root.contentItems[0]);
     session.meta.startTime = Date.now();
     const nodes = oldSession.data.nodes,
           links = oldSession.data.links,
@@ -1230,7 +1251,7 @@
     session.meta.loadTime = Date.now() - session.meta.startTime;
     console.log("Total load time:", session.meta.loadTime.toLocaleString(), "ms");
     if (oldSession) {
-      layout.root.contentItems[0].remove();
+      // layout.root.contentItems[0].remove();
       setTimeout(() => MT.loadLayout(session.layout), 80);
     } else {
       MT.launchView(session.style.widgets['default-view']);
@@ -1259,6 +1280,7 @@
     $(".hideForHIVTrace").css("display", "flex");
     setTimeout(() => {
       let files = layout.contentItems.find(item => item.componentName == "files");
+      // layout.root.contentItems[0].type = "row";
       if (files) files.remove();
       $("#loading-information-modal").modal("hide");
     }, 1200);
@@ -1900,7 +1922,7 @@
       content: []
     });
     layout.contentItems = [];
-    MT.launchView("files");
+    // MT.launchView("files");
   };
   
   MT.getMapData = type => {
@@ -1934,7 +1956,639 @@
   
   let peek = ra => ra[ra.length - 1];
   
+  // TODO refactor loading layout with multuiple views - not this much code needed 
+
+  MT.loadLayoutItem = (component, parent) => {
+
+    switch(component.type) {
+
+      case "row":
+
+        MT.loadRow(component, parent);
+
+        break;
+
+      case "stack":
+
+      console.log("loading stack");
+        MT.loadStack(component, parent);
+
+        break;
+
+      case "column":
+
+        MT.loadColumn(component, parent);
+
+        break;
+
+      // If neither, then view should be launched - canr have row within a row 
+      // type is view 
+      default:        
+        if (!temp.componentCache[component.type]) {
+
+          $.get("components/" + component.type + ".html", response => {
+
+            temp.componentCache[component.type] = response;
+            //This MUST NOT be replace by an arrow function!
+            layout.registerComponent(component.type, function (container, state) {
+              container.getElement().html(state.text);
+            });
+    
+            let viewInfo = {};
+
+            // Get view info from layout
+            layoutDict.forEach(function (item, ind) {
+              if (item.view == component.type) {
+                viewInfo = item;
+              }
+            });
+
+            // console.log('conten root: ', layout.root.contentItems);
+
+            console.log('rotttt: ', layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]]);
+
+            // Add another contentItems
+            layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+              componentName: component.type,
+              componentState: { text: temp.componentCache[component.type] },
+              title: MT.titleize(component.type),
+              type: "component"
+            });
+
+            MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));  
+
+        
+          });
+        } else {
+          let viewInfo = {};
+
+            // Get view info from layout
+            layoutDict.forEach(function (item, ind) {
+              if (item.view == component.type) {
+                viewInfo = item;
+              }
+            });
+
+           // Add another contentItems
+           layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+            componentName: component.type,
+            componentState: { text: temp.componentCache[component.type] },
+            title: MT.titleize(component.type),
+            type: "component"
+          });
+
+          MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"].contentItems]));  
+        }
+      }
+        
+  }
+
+  var contInd = 0;
+  var layoutDict = [];
+
+  MT.loadRow = (component, parent) => {
+
+
+    if(component.type === "row" && component.content && (component.content[0].type === "row" || component.content[0].type === "column" ||component.content[0].type === "stack")) { 
+      // Add row
+      parent.addChild({ type: component.type });
+
+    }
+
+    console.log("row: ", component);
+
+    component.content.forEach(c => {
+
+      switch(c.type) {
+
+        case "column":
+
+          // Add child below row 
+          peek(parent.contentItems).addChild({ type: c.type });
+
+          // Check if child has non layout types (views)
+          c.content.forEach(comp => {
+            // Add column children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+          });
+
+          break;
+
+        case "stack":
+
+        console.log('in stack');
+         // Add child below row 
+         peek(parent.contentItems).addChild({ type: c.type });
+        
+          c.content.forEach(comp => {
+            // Add stack children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+         })
+
+          break;
+
+        // If neither, then reached view and should be launched
+        // Type is view
+        default:
+          if (!temp.componentCache[c.type]) {
+            $.get("components/" + c.type + ".html", response => {
+              temp.componentCache[c.type] = response;
+              //This MUST NOT be replace by an arrow function!
+              layout.registerComponent(c.type, function (container, state) {
+                container.getElement().html(state.text);
+              });
+  
+              let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+
+              // Add another contentItems
+              layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+                componentName: c.type,
+                componentState: { text: temp.componentCache[c.type] },
+                title: MT.titleize(c.type),
+                type: "component"
+              });
+
+              MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));  
+          
+            });
+          } else {
+            let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+    
+             // Add another contentItems
+             layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+              componentName: c.type,
+              componentState: { text: temp.componentCache[c.type] },
+              title: MT.titleize(c.type),
+              type: "component"
+            });
+
+            MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));  
+
+          }
+
+      }
+    });
+
+  }
+
+  MT.UpdateViewFields = (contentItem, callback) => {
+
+    contentItem.on("itemDestroyed", () => layout.contentItems.splice(layout.contentItems.findIndex(item => item === contentItem), 1));
+    console.log('layout cont: ', layout.contentItems);
+    layout.contentItems.push(contentItem);
+
+    // Update fields for views
+    contentItem.element.find("select.nodeVariables").html(
+      "<option>None</option>" +
+      session.data.nodeFields.map(field => '<option value="' + field + '">' + MT.titleize(field) + "</option>").join("\n")
+    );
+    contentItem.element.find("select.linkVariables").html(
+      "<option>None</option>" +
+      session.data.linkFields.map(field => '<option value="' + field + '">' + MT.titleize(field) + "</option>").join("\n")
+    );
+    contentItem.element.find("select.mixedVariables").html(
+      "<option>None</option>" +
+      session.data.linkFields.map(field => '<option value="links-' + field + '">Links ' + MT.titleize(field) + "</option>").join("\n") +
+      session.data.nodeFields.map(field => '<option value="nodes-' + field + '">Nodes ' + MT.titleize(field) + "</option>").join("\n")
+    );
+    contentItem.element.find("select.branch-variables").html(
+      "<option>None</option>" +
+      ["id", "depth", "height", "length", "value"].map(field => '<option value="' + field + '">' + MT.titleize(field) + "</option>").join("\n")
+    );
+    contentItem.element.find(".launch-color-options").click(() => {
+      $("#style-tab").tab("show");
+      setTimeout(() => $("#global-settings-modal").modal("show"), 250);
+    });
+    contentItem.element.find(".modal-header").on("mousedown", function () {
+      let body = $("body");
+      let parent = $(this).parent().parent().parent();
+      body.on("mousemove", e => {
+        parent
+          .css("top", parseFloat(parent.css("top")) + e.originalEvent.movementY + "px")
+          .css("left", parseFloat(parent.css("left")) + e.originalEvent.movementX + "px");
+      });
+      body.one("mouseup", () => body.off("mousemove"));
+    });
+    if (navigator.onLine) contentItem.element.find(".ifOnline").show();
+    for (let id in session.style.widgets) {
+      let $id = $("#" + id);
+      if ($id.length > 0) {
+        if (["radio", "checkbox"].includes($id[0].type)) {
+          if (session.style.widgets[id]) {
+            if ($(contentItem.element[0]).find($id).length > 0) $id.click();   // issue #182
+          }
+        } else {
+          $id.val(session.style.widgets[id]);
+        }
+      }
+    }
+    if (callback) {
+      callback(contentItem);
+    } else {
+      return contentItem;
+    }
+  }
+
+  MT.loadColumn = (component, parent) => {
+
+    if(component.type === "column" && component.content && (component.content[0].type === "row" || component.content[0].type === "column" ||component.content[0].type === "stack")) { 
+      // Add column
+      parent.addChild({ type: component.type });
+
+    }
+
+    component.content.forEach(c => {
+
+      switch(c.type) {
+
+        case "row":
+
+        console.log("roww: ", c);
+         // Add child below row 
+         peek(parent.contentItems).addChild({ type: c.type });
+
+          c.content.forEach(comp => {
+            // Add row children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+          });
+
+          break;
+
+        case "stack":
+
+         // Add child below row 
+         peek(parent.contentItems).addChild({ type: c.type });
+
+          c.content.forEach(comp => {
+            // Add stack children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+          });
+
+          break;
+
+        // If neither, then view should be launched - can have row within a row 
+        // type is view 
+        default:
+
+          if (!temp.componentCache[c.type]) {
+            $.get("components/" + c.type + ".html", response => {
+              temp.componentCache[c.type] = response;
+              //This MUST NOT be replace by an arrow function!
+              layout.registerComponent(c.type, function (container, state) {
+                container.getElement().html(state.text);
+              });
+  
+              let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+
+              console.log('rotttt: ', layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]]);
+  
+              // Add another contentItems
+              layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+                componentName: c.type,
+                componentState: { text: temp.componentCache[c.type] },
+                title: MT.titleize(c.type),
+                type: "component"
+              });
+
+              MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));    
+          
+            });
+          } else {
+            let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+  
+              // Add another contentItems
+              layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+                componentName: c.type,
+                componentState: { text: temp.componentCache[c.type] },
+                title: MT.titleize(c.type),
+                type: "component"
+              });
+
+            MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));  
+
+          }   
+
+        }
+    });
+     
+  }
+
+  MT.loadStack = (component, parent ) => {
+
+    if(component.type === "stack" && component.content && (component.content[0].type === "row" || component.content[0].type === "column" ||component.content[0].type === "stack")) { 
+      // Add column
+      parent.addChild({ type: component.type });
+
+    }
+
+    console.log('loadinggg');
+
+    component.content.forEach(c => {
+
+      console.log('type: ', c.type);
+      switch(c.type) {
+
+        case "row":
+
+          // Add child below row 
+          peek(parent.contentItems).addChild({ type: c.type });
+
+          c.content.forEach(comp => {
+            // Add row children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+          });
+
+          break;
+
+        case "column":
+
+          // Add child below row 
+          peek(parent.contentItems).addChild({ type: c.type });
+
+          c.content.forEach(comp => {
+            // Add stack children to current parent
+            MT.loadLayoutItem(comp, peek(parent.contentItems));
+          });
+
+          break;
+
+        // If neither, then view should be launched - canr have row within a row 
+        // type is view 
+        default:
+
+          if (!temp.componentCache[c.type]) {
+            $.get("components/" + c.type + ".html", response => {
+              temp.componentCache[c.type] = response;
+              //This MUST NOT be replace by an arrow function!
+              layout.registerComponent(c.type, function (container, state) {
+                container.getElement().html(state.text);
+              });
+  
+              let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+
+              console.log('rotttt: ', layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]]);
+  
+              // Add another contentItems
+              layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+                componentName: c.type,
+                componentState: { text: temp.componentCache[c.type] },
+                title: MT.titleize(c.type),
+                type: "component"
+              });
+
+              MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));    
+          
+            });
+          } else {
+            let viewInfo = {};
+  
+              // Get view info from layout
+              layoutDict.forEach(function (item, ind) {
+                if (item.view == c.type) {
+                  viewInfo = item;
+                }
+              });
+  
+              // Add another contentItems
+              layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+                componentName: c.type,
+                componentState: { text: temp.componentCache[c.type] },
+                title: MT.titleize(c.type),
+                type: "component"
+              });
+
+            MT.UpdateViewFields(peek(layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].contentItems));  
+
+          }
+      }
+
+    });
+
+  }
+
+  // Count items and create object with properties for view location within layout
+  MT.countContentItems = (contentItems, index, depth) => {
+    let count = 0;
+    contentItems.forEach((item, ind) => {
+      if (item.type !== "row" && item.type !== "column" && item.type !== "stack") {
+
+        layoutDict.push({
+          view: item.type,
+          rootIndex: index,
+          contentIndex: contInd,
+          depth: depth
+        });
+
+        count++;
+        contInd++;
+
+      } else {
+        if(item.content) {
+
+          // need to go deeper to retrieve view, so increase depth
+          if(item.content[0].type !== "row" && item.content[0].type !== "column" && item.content[0].type !== "stack") {
+            depth++;
+          }
+
+          count += MT.countContentItems(item.content, index, depth);
+          
+        } else {
+
+          layoutDict.push({
+            view: item.type,
+            rootIndex: index,
+            contentIndex: contInd, 
+            depth : depth
+          });
+
+          contInd++;
+          count++;
+        }
+      }
+    });
+    
+    return count;
+  };
+
+
+  MT.loadLayout = (component, parent) => {
+
+    if (!parent) {
+      parent = layout.root;
+    }
+
+    console.log('component: ', component);
+
+    switch(component.type) {
+
+      case "row":
+
+      if(component.content && (component.content[0].type !== "row" && component.content[0].type !== "column" && component.content[0].type !== "stack")) {
+        if (["stack", "row", "column"].includes(component.type)) {
+          parent.addChild({ type: component.type });
+          component.content.forEach(c => MT.loadLayout(c, peek(parent.contentItems)));
+        } else {
+          MT.launchView(component.type);
+        }
+
+      } else {
+        component.content.forEach( (c, index) => {
+          // adding number of views for each content 
+          contInd = 0;
+          MT.countContentItems(c.content, index, 0);
+        });
+
+        MT.loadRow(component, parent);
+      }
+        
+
+        break;
+
+      case "stack":
+
+      if (["stack", "row", "column"].includes(component.type)) {
+        parent.addChild({ type: component.type });
+        component.content.forEach(c => MT.loadLayout(c, peek(parent.contentItems)));
+      } else {
+        MT.launchView(component.type);
+      }
+
+        break;
+
+      case "column":
+
+        if(component.content && (component.content[0].type !== "row" && component.content[0].type !== "column" && component.content[0].type !== "stack")) {
+          if (["stack", "row", "column"].includes(component.type)) {
+            parent.addChild({ type: component.type });
+            component.content.forEach(c => MT.loadLayout(c, peek(parent.contentItems)));
+          } else {
+            MT.launchView(component.type);
+          }
+        } else {
+          component.content.forEach( (c, index) => {
+            // adding number of views for each content 
+            contInd = 0;
+            MT.countContentItems(c.content, index, 0);
+      
+          });
+  
+          MT.loadColumn(component, parent);
+  
+        }
+        break;
+
+      // If neither, then view should be launched - canr have row within a row 
+      // type is view 
+      default:
+        MT.launchView(component.type);
+      
+    }
+
+  };
+
+  MT.launchMultipleViews = (views, callback) => {
+
+    let contentItem = layout.contentItems.find(item =>
+      item.componentName === view
+    );
+
+    if (contentItem) {
+
+      contentItem.parent.setActiveContentItem(contentItem);
+
+    // Create  view
+    } else {
+
+      contentItem = peek(layout.root.contentItems[0].contentItems[0]);
+
+    }
+
+    if (!temp.componentCache[c.type]) {
+      $.get("components/" + c.type + ".html", response => {
+        temp.componentCache[c.type] = response;
+        //This MUST NOT be replace by an arrow function!
+        layout.registerComponent(c.type, function (container, state) {
+          container.getElement().html(state.text);
+        });
+
+        let viewInfo = {};
+
+        // Get view info from layout
+        layoutDict.forEach(function (item, ind) {
+          if (item.view == c.type) {
+            viewInfo = item;
+          }
+        });
+
+        // Add another contentItems
+        layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+          componentName: c.type,
+          componentState: { text: temp.componentCache[c.type] },
+          title: MT.titleize(c.type),
+          type: "component"
+        });
+
+    
+      });
+    } else {
+
+      let viewInfo = {};
+
+        // Get view info from layout
+        layoutDict.forEach(function (item, ind) {
+          if (item.view == c.type) {
+            viewInfo = item;
+          }
+        });
+
+       // Add another contentItems
+       layout.root.contentItems[0].contentItems[viewInfo["rootIndex"]].addChild({
+        componentName: c.type,
+        componentState: { text: temp.componentCache[c.type] },
+        title: MT.titleize(c.type),
+        type: "component"
+      });
+    }
+
+  }
+
   MT.launchView = (view, callback) => {
+
     if (!temp.componentCache[view]) {
       $.get("components/" + view + ".html", response => {
         temp.componentCache[view] = response;
@@ -1989,12 +2643,12 @@
         $("#style-tab").tab("show");
         setTimeout(() => $("#global-settings-modal").modal("show"), 250);
       });
-      contentItem.element.find(".modal-header").on("mousedown", function(){
+      contentItem.element.find(".modal-header").on("mousedown", function () {
         let body = $("body");
         let parent = $(this).parent().parent().parent();
         body.on("mousemove", e => {
           parent
-            .css("top",  parseFloat(parent.css("top" )) + e.originalEvent.movementY + "px")
+            .css("top", parseFloat(parent.css("top")) + e.originalEvent.movementY + "px")
             .css("left", parseFloat(parent.css("left")) + e.originalEvent.movementX + "px");
         });
         body.one("mouseup", () => body.off("mousemove"));
@@ -2005,7 +2659,7 @@
         if ($id.length > 0) {
           if (["radio", "checkbox"].includes($id[0].type)) {
             if (session.style.widgets[id]) {
-              if($(contentItem.element[0]).find($id).length > 0)   $id.click();   // issue #182
+              if ($(contentItem.element[0]).find($id).length > 0) $id.click();   // issue #182
             }
           } else {
             $id.val(session.style.widgets[id]);
