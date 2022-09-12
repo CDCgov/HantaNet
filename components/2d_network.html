@@ -1396,17 +1396,18 @@ Note that this may cause slow performance on larger networks.">
       // Initialize custom symbols displaying to true unless non-custom found
       let onlyCustomSymbolsDisplaying = true;
 
-      // 
       nodes.selectAll('path').each(function (d) {
 
         // Check if symbol is custom from variable value - get the index for later use
-        let customSymbolIndex = customSymbols.findIndex(symbol => symbol.split('.').slice(0, -1).join('.') === temp?.style.nodeSymbolMap(d[symbolVariable]));
+        let customSymbolIndex = customSymbols.findIndex(symbol => {
+          return symbol.split('.').slice(0, -1).join('.') == temp?.style.nodeSymbolMap(d[symbolVariable]);
+        } );
 
         // Update type for individual size based on size value from variable
         if (symbolVariable !== 'None') {
           if(customSymbolIndex === -1) {
-            type = d3[temp?.style.nodeSymbolMap(d[symbolVariable])];
-          }
+            type = d3[temp.style.nodeSymbolMap(d[symbolVariable])];
+          } 
         } 
 
         // Get parent to access image property for custom symbols
@@ -1468,7 +1469,7 @@ Note that this may cause slow performance on larger networks.">
 
         // If one size - size variable is None
         } else {
-
+ 
           // Update symbol/path with new size
           d3.select(this).attr('d', d3.symbol().size(size).type(type));
 
@@ -1481,7 +1482,7 @@ Note that this may cause slow performance on larger networks.">
           } 
 
           // If not a custom symbol
-          if(customSymbolIndex === -1) {
+          if(customSymbolIndex === -1) {          
 
              // There is at least one non-custom symbol displaying, so will show color table
              onlyCustomSymbolsDisplaying = false;
@@ -1743,28 +1744,10 @@ Note that this may cause slow performance on larger networks.">
       // If same shape variable and value inserted/removed into table
       if (oldVariable === variable && previousKeys != values) {
 
-        // Item added or removed to table
-        if (values.length !== previousKeys.length){
-
-          values.forEach((key, i) => {
-
-            // If key not at same index, find it in previous
-            if(key !== previousKeys[i]){
-              // Get position
-              let ind = previousKeys.findIndex(k => {return k == key});
-              
-              // if found index of old key and its not at the back
-              if (ind !== -1 && nodeSymbols[i] !== oldNodeSymbols[ind] && i !== values.length - 1) {
-                // Add it to the node symbols position
-                nodeSymbols.splice(i, 0, oldNodeSymbols[ind]);
-              // Value was added/new
-              } else if (nodeSymbols[i] !== oldNodeSymbols[ind]) {
-                // Insert node symbol at location
-                nodeSymbols.splice(i, 0,oldNodeSymbols[values.length + 1]);
-              }
-            }
-          });
-      }
+        console.log('variable: ', variable);
+        console.log('prev keys: ', previousKeys);
+        console.log('values: ', values);
+        console.log('in 1');
 
     }
 
@@ -1806,20 +1789,6 @@ Note that this may cause slow performance on larger networks.">
           session.style.nodeSymbolsTable[variable] = nodeSymbolsTL;
         }        
 
-
-        // TODO: Asses whether this is needed
-        // let key;
-        // let tempNodeSymbols=[];
-        // for(let v of values) {
-        //   console.log('value: ', v);
-        //   let table = session.style.nodeSymbolsTableKeys[variable];
-        //   console.log('table: ', table);
-        //   key = table.findIndex( k => k === v);
-        //   conole.log('key: ', key, nodeSymbols[key])
-        //   tempNodeSymbols.push(nodeSymbols[key]);
-        // }
-        // console.log('temp node smb: ', tempNodeSymbols);
-        // nodeSymbols = tempNodeSymbols;
       }
       
       temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
