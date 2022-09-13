@@ -1867,6 +1867,11 @@ Note that this may cause slow performance on larger networks.">
               let key = session.style.nodeSymbolsTableKeys[variable].findIndex( k => k === v);
               session.style.nodeSymbolsTable[variable].splice(key, 1, this.value);
             }
+
+            // Update original values and their order so they can be compared during timeline
+            if (session.style.widgets["timeline-date-field"] === 'None') {
+              session.style.widgets["original-node-symbols"] = _.cloneDeep(nodeSymbols);
+            }
             redrawNodes();
           });
 
