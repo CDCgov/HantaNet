@@ -280,7 +280,8 @@
         "symbolOctagonAlt",
         "symbolX"
       ],
-      nodeSymbolsTable: {},
+      originalNodeSymbolValues: {},
+      nodeSymbol: {},
       nodeSymbolsTableKeys: {},
       nodeValueNames: {},
       polygonAlphas: [0.5],
@@ -1631,28 +1632,45 @@
 
     let keys = Object.keys(session.style.nodeColorsTableHistory)
 
-    //Update Table History
-    values.forEach( (val, ind) => {
+    // If same shape variable and value inserted/removed into table
+    if (!_.isEqual(session.style.widgets["original-node-color-values"], values) ) {
 
-      // Get index of value in history
-      let index = keys.findIndex(key => key === val);
+      if(session.style.widgets["previous-node-color-values"] && !_.isEqual(session.style.widgets["previous-node-color-values"], values)) {
 
-      //If found in history set previous color
-      if (index !== -1) {
+          //Update Table History
+        values.forEach( (val, ind) => {
 
-        // Update color of where value currently is
-        nodeColors[ind] = session.style.nodeColorsTableHistory[val];
+          // If key not at same index, find it in previous
+          if(val !== session.style.widgets["original-node-color-values"][ind]){
+              // Get index of value in history
+              let index = session.style.widgets["original-node-color-values"].findIndex(key => key === val);
 
-      //If value not found in history, add it
-      } else {
-        session.style.nodeColorsTableHistory[val] = nodeColors[ind];
+              //If found in history set previous color
+              if (index !== -1) {
+
+                var color = session.style.widgets["original-node-colors"][ind];
+
+
+                // Update color of where value currently is
+                nodeColors[ind] = color;
+
+              //If value not found in history, add it
+              } else {
+                session.style.nodeColorsTableHistory[val] = nodeColors[ind];
+              }
+          }
+
+
+          if (val === "null"){
+            nodeColors[ind] = "#EAE553"
+          }
+
+        });
+
       }
 
-      if (val === "null"){
-        nodeColors[ind] = "#EAE553"
-      }
+    }
 
-    });
 
     if (session.style.widgets["node-timeline-variable"] == 'None') {
       session.style.nodeColorsTableKeys[variable] = values;
@@ -1697,6 +1715,15 @@
       }
       nodeColors = temp.style.nodeColor = tempNodeColors; // temp node color maps saved only under timeline
       temp.style.nodeColorKeys = [...values];
+    }
+
+    // Update original values and their order so they can be compared during timeline
+    session.style.widgets["previous-node-color-values"] = values; 
+
+    // Update original values and their order so they can be compared during timeline
+    if (session.style.widgets["timeline-date-field"] === 'None') {
+      session.style.widgets["original-node-color-values"] = values;
+      session.style.widgets["original-node-colors"] = _.cloneDeep(nodeColors);
     }
       
     temp.style.nodeColorMap = d3

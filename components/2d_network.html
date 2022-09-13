@@ -1742,12 +1742,39 @@ Note that this may cause slow performance on larger networks.">
       values.sort(function (a, b) {return aggregates[b] - aggregates[a];}); //#297
       
       // If same shape variable and value inserted/removed into table
-      if (oldVariable === variable && previousKeys != values) {
+      if (!_.isEqual(session.style.originalNodeSymbolValues, values) ) {
 
-        console.log('variable: ', variable);
-        console.log('prev keys: ', previousKeys);
-        console.log('values: ', values);
-        console.log('in 1');
+        if(session.style.widgets["previous-symbol-values"] && !_.isEqual(session.style.widgets["previous-symbol-values"], values)) {
+
+          console.log("previousValue: ", _.cloneDeep(session.style.widgets["previous-symbol-values"]), "values: ", _.cloneDeep(values));
+
+          values.forEach((key, i) => {
+
+            // If key not at same index, find it in previous
+            if(key !== session.style.originalNodeSymbolValues [i]){
+
+              console.log('key no prev: ', key, session.style.originalNodeSymbolValues[i]);
+              
+              // Get index where node symbol was
+              let ind = session.style.originalNodeSymbolValues.findIndex(k => {return k == key});
+
+              // If position found
+              if(ind !== -1) {
+
+                console.log('orig sumbpls: ', session.style.widgets["original-node-symbols"]);
+                console.log('index in old: ', ind);
+                // Get Correct Symbol
+                var symbol = session.style.widgets["original-node-symbols"][ind];
+
+                console.log('correct symbol: ', symbol);
+
+                // Swap incorrect symbol with the correct symbols incorrect position
+                nodeSymbols[i] = symbol;
+
+              }
+            }
+          });
+        }
 
     }
 
@@ -1789,6 +1816,15 @@ Note that this may cause slow performance on larger networks.">
           session.style.nodeSymbolsTable[variable] = nodeSymbolsTL;
         }        
 
+      }
+
+      // Update original values and their order so they can be compared during timeline
+      session.style.widgets["previous-symbol-values"] = values; 
+
+      // Update original values and their order so they can be compared during timeline
+      if (session.style.widgets["timeline-date-field"] === 'None') {
+        session.style.originalNodeSymbolValues = values;
+        session.style.widgets["original-node-symbols"] = _.cloneDeep(nodeSymbols);
       }
       
       temp.style.nodeSymbolMap = d3.scaleOrdinal(nodeSymbols).domain(values);
@@ -1859,7 +1895,6 @@ Note that this may cause slow performance on larger networks.">
       $('.select2-selection__rendered').css({'display': 'flex'});
       $('.select2-container--default .select2-results>.select2-results__options > li').css({'display': 'flex', 'height':'34px'});
       $('.select2-results__option > div').css({'display': 'flex'});
-
       
       table
         .find(".p-1")
