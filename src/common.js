@@ -1658,6 +1658,13 @@
               } else {
                 session.style.nodeColorsTableHistory[val] = nodeColors[ind];
               }
+          } else {
+
+            var color = session.style.widgets["original-node-colors"][ind];
+
+            // Update color of where value currently is
+            nodeColors[ind] = color;
+
           }
 
 

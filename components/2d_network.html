@@ -1772,6 +1772,15 @@ Note that this may cause slow performance on larger networks.">
                 nodeSymbols[i] = symbol;
 
               }
+            } else {
+
+              // Get Correct Symbol
+              var symbol = session.style.widgets["original-node-symbols"][i];
+
+              console.log('correct symbol: ', symbol);
+
+              // Swap incorrect symbol with the correct symbols incorrect position
+              nodeSymbols[i] = symbol;
             }
           });
         }
