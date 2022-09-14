@@ -376,7 +376,7 @@
     let sdlinks = session.data.links;
     if(temp.matrix[newLink.source][newLink.target]){
       let oldLink = temp.matrix[newLink.source][newLink.target];
-      let origin = uniq(newLink.origin.concat(oldLink.origin));
+      let myorigin = uniq(newLink.origin.concat(oldLink.origin));
 
       if (oldLink.hasDistance) {
         newLink.distanceOrigin = oldLink.distanceOrigin

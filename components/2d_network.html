@@ -1785,6 +1785,16 @@ Note that this may cause slow performance on larger networks.">
           });
         }
 
+    } else {
+      values.forEach((key, i) => {
+
+              // Get Correct Symbol
+              var symbol = session.style.widgets["original-node-symbols"][i];
+
+              // Swap incorrect symbol with the correct symbols incorrect position
+              nodeSymbols[i] = symbol;
+
+      });
     }
 
       if (session.style.widgets["node-timeline-variable"] == 'None') {
