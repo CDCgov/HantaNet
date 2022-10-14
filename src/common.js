@@ -102,6 +102,7 @@
     "link-color-variable": "None",
     "link-decimal-variable" : 2,
     "link-directed": false,
+    "link-bidirected": false,
     "link-label-variable": "None",
     "link-length": 0.125,
     "link-opacity": 0,
