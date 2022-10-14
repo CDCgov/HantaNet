@@ -2027,8 +2027,10 @@ Note that this may cause slow performance on larger networks.">
     });
 
     $('#link-bidirected').parent().on('click', function () {
-      svg.select('g.links').selectAll('line').attr('marker-start', 'url(#start-arrow)');
-      settings['link-bidirected'] = true;
+      if(settings['link-directed']) {
+        svg.select('g.links').selectAll('line').attr('marker-start', 'url(#start-arrow)');
+        settings['link-bidirected'] = true;
+      }
     });
 
     $('#link-unbidirected').parent().on('click', function () {
