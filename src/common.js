@@ -972,7 +972,9 @@
               source: sourceID,
               target: targetID,
               distance: dists[l++],
-              origin: ['Genetic Distance']
+              origin: ['Genetic Distance'],
+              hasDistance: true,
+              directed: false
             }, check);
           }
         }
