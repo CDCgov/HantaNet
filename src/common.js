@@ -366,13 +366,17 @@
   };
   
   MT.addLink = newLink => {
+    console.log('adding linke: ', newLink);
     if(!temp.matrix[newLink.source]){
       temp.matrix[newLink.source] = {};
     }
     if(!temp.matrix[newLink.target]){
       temp.matrix[newLink.target] = {};
     }
-    if (newLink.source == newLink.target) return 0;
+    if (newLink.source == newLink.target) {
+      console.log('link is same:', newLink);
+      return 0;
+    }
     let linkIsNew = 1;
     let sdlinks = session.data.links;
     if(temp.matrix[newLink.source][newLink.target]){
@@ -387,11 +391,18 @@
 
       Object.assign(newLink, oldLink);
       linkIsNew = 0;
+
+      console.log('link is old: ', oldLink, newLink);
     } else if(temp.matrix[newLink.target][newLink.source]){
       console.warn("This scope should be unreachable. If you're using this code, something's wrong.");
       let oldLink = temp.matrix[newLink.target][newLink.source];
       let origin = uniq(newLink.origin.concat(oldLink.origin));
       Object.assign(oldLink, newLink, {origin: origin});
+
+      if (oldLink.origin.length == 1  && oldLink.origin[0] == "Genetic Distance"){
+        oldLink.directed = false;
+      }
+
       linkIsNew = 0;
     } else {
       if (newLink.hasDistance) {
@@ -414,6 +425,9 @@
           origin: [],
           hasDistance: false
         }, newLink);
+      }
+      if (newLink.origin.length == 1  && newLink.origin[0] == "Genetic Distance"){
+        newLink.directed = false;
       }
       temp.matrix[newLink.source][newLink.target] = newLink;
       temp.matrix[newLink.target][newLink.source] = newLink;
@@ -531,6 +545,8 @@
     // when using recall function several times, window remembers every registered event function of each recall which all registered functions will be fired when triggered
     // since an event is registered in both 2d_network.html and index.js, add namespace to events in 2d_network so they can be removed without affecting events in index
     $window.off('.2d');
+
+    console.log('applying session: ', oldSession);
 
     MT.reset();
     $("#launch").prop("disabled", true);
