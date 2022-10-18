@@ -393,16 +393,16 @@
       linkIsNew = 0;
 
       console.log('link is old: ', oldLink, newLink);
-    } else if(temp.matrix[newLink.target][newLink.source]){
-      console.warn("This scope should be unreachable. If you're using this code, something's wrong.");
-      let oldLink = temp.matrix[newLink.target][newLink.source];
-      let origin = uniq(newLink.origin.concat(oldLink.origin));
-      Object.assign(oldLink, newLink, {origin: origin});
 
       if (oldLink.origin.length == 1  && oldLink.origin[0] == "Genetic Distance"){
         oldLink.directed = false;
       }
 
+    } else if(temp.matrix[newLink.target][newLink.source]){
+      console.warn("This scope should be unreachable. If you're using this code, something's wrong.");
+      let oldLink = temp.matrix[newLink.target][newLink.source];
+      let origin = uniq(newLink.origin.concat(oldLink.origin));
+      Object.assign(oldLink, newLink, {origin: origin});
       linkIsNew = 0;
     } else {
       if (newLink.hasDistance) {

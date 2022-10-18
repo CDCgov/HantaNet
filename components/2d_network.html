@@ -2037,12 +2037,21 @@ Note that this may cause slow performance on larger networks.">
         } 
       });
       settings['link-directed'] = true;
+
+      if(settings['link-bidirected']) {
+        svg.select('g.links').selectAll('line').attr('marker-start', function(l) {
+          if (l.bidirected) {
+            return 'url(#start-arrow)';
+          } 
+        });
+        settings['link-bidirected'] = true;
+      }
     });
 
     $('#link-bidirected').parent().on('click', function () {
       if(settings['link-directed']) {
         svg.select('g.links').selectAll('line').attr('marker-start', function(l) {
-          if (l.directed || l.directed == null) {
+          if (l.bidirected) {
             return 'url(#start-arrow)';
           } 
         });
