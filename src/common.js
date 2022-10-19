@@ -1649,8 +1649,6 @@
       );
     }
 
-    let keys = Object.keys(session.style.nodeColorsTableHistory)
-
     // If same shape variable and value inserted/removed into table
     if (!_.isEqual(session.style.widgets["original-node-color-values"], values) ) {
 
