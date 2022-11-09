@@ -1,9 +1,9 @@
 <div id="file-panel" class="container-fluid">
   <div id="file-table" class="container">
-    <p id="warning-prompt" class="text-muted fade"> If you're having a problem with MicrobeTrace, please 
+    <p id="warning-prompt" class="text-muted"> If you're having a problem with MicrobeTrace, please 
       <a target="_blank" href="https://github.com/CDCgov/MicrobeTrace/wiki/Troubleshooting---Caching" style="font-weight: bold;text-decoration:underline">troubleshoot caching</a>. 
     </p>
-    <p id="file-prompt" class="text-muted fade">Drag-and-Drop Files here, or click "Add File(s)" to load data.</p>
+    <p id="file-prompt" class="text-muted">Drag-and-Drop Files here, or click "Add File(s)" to load data.</p>
   </div>
 </div>
 
@@ -99,6 +99,7 @@
             <option value="3d_network">3D Network</option>
             <option value="bubbles">Bubbles</option>
             <option value="table">Table</option>
+            <option value="phylogenetic_tree">Phylogenetic Tree</option>
           </select>
         </div>
       </div>
@@ -412,6 +413,10 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
     }
 
     function addToTable(file) {
+      // Remove parenthesis and <> from filename
+      file.name = file.name.replace(/[\u00A0-\u9999<>(){}\&]/g, function(i) {
+            return '';
+      });
       const extension = file.extension ? file.extension : filterXSS(file.name).split('.').pop().toLowerCase();
       //#291 restore to previous filetype selection if available
       const isFasta = 'fasta' == file.format || extension.indexOf('fas') > -1;
@@ -473,7 +478,13 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
         `).appendTo(fnamerow);
         fnamerow.appendTo(root);
         let optionsrow = $('<div class="row w-100"></div>');
-        let options = '<option>None</option>' + headers.map(h => `<option value="${h}">${MT.titleize(h)}</option>`).join('\n');
+        let options = '<option>None</option>' + headers.map(h => {
+          let encodedHeader = h.replace(/[\u00A0-\u9999<>(){}`"\&]/g, function(i) {
+            return '';
+          });
+          return `<option value="${encodedHeader}">${encodedHeader}</option>`;
+          } 
+        ).join('\n');
         optionsrow.append(`
       <div class='col-4 '${isFasta || isNewick ? ' style="display: none;"' : ''} data-file='${file.name}'>
         <label for="file-${file.name}-field-1">${isNode ? 'ID' : 'Source'}</label>
@@ -701,7 +712,13 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
     let auditBlock = $('#audited-sequences');
     const logAudit = (id, type) => {
       let match = auditBlock.find(`[data-id="${id}"]`);
-      let button = $(`<button class="btn btn-warning btn-sm audit-exclude" data-id="${id}">Exclude</button>`).on('click', function(){
+      const encodedId = (id).replace(/[\u00A0-\u9999<><>(){}`"\&]/g, function(i) {
+              return '&#'+i.charCodeAt(0)+';';
+      });
+      const encodedType = (type).replace(/[\u00A0-\u9999<><>(){}`"\&]/g, function(i) {
+              return '&#'+i.charCodeAt(0)+';';
+      });
+      let button = $(`<button class="btn btn-warning btn-sm audit-exclude" data-id="${encodedId}">Exclude</button>`).on('click', function(){
         let thi$ = $(this);
         const id = thi$.data('id');
         if(thi$.text() == 'Exclude'){
@@ -712,7 +729,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
           thi$.removeClass('btn-success').addClass('btn-warning').text('Exclude');
         }
       });
-      let row = $(`<div class="alert alert-warning w-100 d-flex justify-content-between" role="alert"><span>${id} appears to be ${type}.</span></div>`);
+      let row = $(`<div class="alert alert-warning w-100 d-flex justify-content-between" role="alert"><span>${encodedId} appears to be ${encodedType}.</span></div>`);
       row.append(button);
       auditBlock.append(row);
     };
@@ -879,27 +896,6 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
       );
     })
 
-    $('#launch').on('click', () => {
-      session.meta.startTime = Date.now();
-      $('#launch').prop('disabled', true);
-      document.getElementById('loading-information').innerHTML="<p>Processing file(s)...</p>";
-      new Promise(function(resolve, reject) {
-        $('#loading-information-modal').on('shown.bs.modal', function (e) {
-          session.messages = [];
-          $('#loading-information').html('');
-          resolve("done");
-        });
-        $('#loading-information-modal').modal({
-          backdrop: false,
-          keyboard: false
-        });
-        setTimeout(() => reject(new Error("Problem loading information modal!")), 5000);  
-      }).then(
-        result => launch(), // 
-        error => {alert(error); launch(); } // informational modal doesn't load
-      );
-    })
-
     const launch = async () => {
       temp.messageTimeout = setTimeout(() => {
         $('#loadCancelButton').slideDown();
@@ -944,8 +940,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
           let l = 0;
 
           let sources = [];
-          let targets = [];
-          
+          let targets = []
           let forEachLink = link => {
             const keys = Object.keys(link);
             const n = keys.length;
@@ -957,7 +952,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
                 session.data.linkFields.push(key);
               }
             }
-            
+
             let src = '' + safeLink[file.field1];
             let tgt = '' + safeLink[file.field2];
 
@@ -970,6 +965,7 @@ Please note that this causes MicrobeTrace to store data on your computer's hard 
             // Link is the same -> bidirectional
             if(srcIndex != -1 && tgtIndex != -1) {
 
+              console.log('bi is true: ', '' + safeLink[file.field1]);
                // Set distance if distance set (field 3)
                l += MT.addLink(Object.assign({
                   source: '' + safeLink[file.field1],

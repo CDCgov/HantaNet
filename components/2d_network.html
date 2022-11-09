@@ -608,7 +608,7 @@ Note that this may cause slow performance on larger networks.">
     ga('set', 'title', '2D View');
     ga('send', 'pageview');
 
-     // Stores array of custom symbols from JSON
+    // Stores array of custom symbols from JSON
     let customSymbols = [];
 
     var customChanged = false;
@@ -623,12 +623,21 @@ Note that this may cause slow performance on larger networks.">
         $('#node-symbol').prepend('<option data-img_src="img/custom-symbols/' + symbolFileName + '" value="' + symbolFileName.split('.').slice(0, -1).join('.') + '"> (' + symbolFileName.split('.').slice(0, -1).join('.') + ')</option>');
       });
 
+      // In case custom symbols are in saved session and loaded before custom symbols did
+      render();
+
     }
 
     // Get custom symbols from json file
     $.getJSON("img/custom-symbols/symbols.json", getCustomSymbolsArray);
+
+    $('#tipsTab').show()
     
-    if (session.network.allPinned && !$('#pinbutton').hasClass('active')) $('#pinbutton').button('toggle');
+    if (session.network.allPinned && !$('#pinbutton').hasClass('active')) {
+      $('#pinbutton').button('toggle');
+    }
+
+    session.style.widgets['loaded'] = true;
     
     let halfWidth = $('#network').parent().width() / 2,
       halfHeight = $('#network').parent().parent().parent().height() / 2,
@@ -759,13 +768,10 @@ Note that this may cause slow performance on larger networks.">
       const start = Date.now();
       let newNodes = MT.getVisibleNodes(true);
       let oldNodes;
-      if(session.style.widgets["timeline-date-field"] != 'None'){
+      if(session.style.widgets["timeline-date-field"] != 'None')
         oldNodes = session.network.timelineNodes;
-      }
-      else {
+      else
         oldNodes = session.network.nodes;
-      }
-
       
       if (newNodes.length === 0 && session.style.widgets["timeline-date-field"] == 'None') return;
       
@@ -822,8 +828,8 @@ Note that this may cause slow performance on larger networks.">
       updateLinkColor();
       scaleLinkWidth();
 
-       // Check if arrows visible and draw them
-       if(settings['link-directed']) {
+      // Check if arrows visible and draw them
+      if(settings['link-directed']) {
         svg.select('g.links').selectAll('line').attr('marker-end', function(l) {
           if (l.directed || l.directed == null) {
             return 'url(#end-arrow)';
@@ -838,6 +844,7 @@ Note that this may cause slow performance on larger networks.">
           } 
         });
       }
+
 
       let linklabels = svg.select('g.links').selectAll('text').data(getLLinks())
         .join('text')
@@ -866,6 +873,9 @@ Note that this may cause slow performance on larger networks.">
               (l.source.y + l.target.y) / 2 + ')'
             );
         }
+
+       
+
       }
 
       let foci = settings['polygons-foci'];
@@ -1188,7 +1198,13 @@ Note that this may cause slow performance on larger networks.">
         let nd = session.data.nodes.find(nd => nd._id == d._id);
         for (let attribute in nd) {
           if (attribute[0] == '_') continue;
-          target.append(`<tr><td><strong>${MT.titleize(attribute)}</strong></td><td>${d[attribute]}</td></tr>`);
+          const encodedAttribute = attribute.replace(/[\u00A0-\u9999<>(){}`"\&]/g, function(i) {
+              return '&#'+i.charCodeAt(0)+';';
+          });
+          const encodedAttributeValue = String(d[attribute]).replace(/[\u00A0-\u9999<>(){}`"\&]/g, function(i) {
+              return '&#'+i.charCodeAt(0)+';';
+          });
+          target.append(`<tr><td><strong>${MT.titleize(encodedAttribute)}</strong></td><td>${encodedAttributeValue}</td></tr>`);
         }
         $('#network-attribute-modal').modal('show');
       }).node().focus();
@@ -1937,17 +1953,28 @@ Note that this may cause slow performance on larger networks.">
             redrawNodes();
           });
 
+        let newVal = (session.style.overwrite && session.style.overwrite.nodeSymbolValueTitles && session.style.overwrite.nodeSymbolValueTitles[v]) ? session.style.overwrite.nodeSymbolValueTitles[v] : v;
 
-        
         let cell = $('<td></td>').append(selector);
         let row = $(
           '<tr>' +
-          '<td contenteditable>' + MT.titleize('' + v) + '</td>' +
+          '<td id=' + v + ' contenteditable>' + MT.titleize(''+ newVal) + '</td>' +
           (settings['node-symbol-table-counts'] ? ('<td>' + aggregates[v] + '</td>') : '') +
           (settings['node-symbol-table-frequencies'] ? ('<td>' + (aggregates[v] / vnodes).toLocaleString() + '</td>') : '') +
           '</tr>'
         ).append(cell);
         table.append(row);
+
+        table
+        .find("#" + newVal)
+        .on("focusout", function() {
+          if(!session.style.overwrite || !session.style.overwrite.nodeSymbolValueTitles) {
+            session.style.overwrite.nodeSymbolValueTitles = {};
+            session.style.overwrite.nodeSymbolValueTitles[v] = $(this).text();
+          } else {
+            session.style.overwrite.nodeSymbolValueTitles[v] = $(this).text();
+          }
+        });
 
         count++;
 
@@ -2020,7 +2047,7 @@ Note that this may cause slow performance on larger networks.">
     function updateNodeColors() {
       settings = session.style.widgets;
       let variable = settings['node-color-variable'];
-      var nodes = svg.select('g.nodes').selectAll('g').select('path').data(session.network.nodes).classed('selected', d => d.selected);
+      let nodes = svg.select('g.nodes').selectAll('g').select('path').data(session.network.nodes).classed('selected', d => d.selected);
       if (variable == 'None') {
         let col = settings['node-color'];
         nodes.attr('fill', col).attr('opacity', 1);
@@ -2048,8 +2075,9 @@ Note that this may cause slow performance on larger networks.">
     });
 
     $('#link-bidirected').parent().on('click', function () {
+      // console.log('bidirected: ', settings['link-bidirected']);
       settings['link-bidirected'] = true;
-      if(settings['link-directed']) {
+      if(settings['link-directed'] && settings['link-bidirected']) {
         svg.select('g.links').selectAll('line').attr('marker-start', function(l) {
           if (l.bidirectional) {
             return 'url(#start-arrow)';
@@ -2699,12 +2727,14 @@ Note that this may cause slow performance on larger networks.">
     $('#fitbutton').on('click', fit);
 
     $('#pinbutton').on('click', function () { 
+      console.log('pin');
       let nodes = svg
         .select('g.nodes')
         .selectAll('g')
         .data(session.network.nodes)
         .select('path');
       if (session.network.allPinned) { 
+        console.log('all pinned');
         nodes.each(function (d) {
           delete d.fx;
           delete d.fy;
@@ -2712,6 +2742,7 @@ Note that this may cause slow performance on larger networks.">
         });
         force.alpha(0.3).alphaTarget(0).restart();
       } else {
+        console.log('all not pinned');
         nodes.each(function (d) {
           d.fx = d.x;
           d.fy = d.y;
@@ -2862,6 +2893,7 @@ Note that this may cause slow performance on larger networks.">
       .on('stop-force-simulation.2d', stopSimulation);
 
     layout.on('stateChanged', function () {
+      console.log('layuouttt state');
       let wrapper = $('#network').parent();
       $('#network-export-width').val(wrapper.width());
       $('#network-export-height').val(wrapper.height());
@@ -2872,11 +2904,7 @@ Note that this may cause slow performance on larger networks.">
     if (session.files.length > 1) $('#link-color-variable').val(linkColorVariable).change(); 
     if (settings['background-color']) $('#network').css('background-color', settings['background-color']);
 
-    // Wait a second to render
-    setTimeout(function(){
-        render();
-    }, 500);
-
+    render();
     if (session.style.widgets["node-timeline-variable"] != 'None') { 
       $('#node-timeline-variable').val(session.style.widgets["node-timeline-variable"]).change();
     }

@@ -319,8 +319,7 @@
     cluster: 1,
     visible: true,
     degree: 0,
-    origin: [],
-    hasDistance: false
+    origin: []
   });
   
   let isNumber = a => typeof a == "number";
@@ -385,43 +384,31 @@
       let myorigin = uniq(newLink.origin.concat(oldLink.origin));
 
       if (oldLink.hasDistance) {
-        newLink.hasDistance = true;
-        newLink['distance'] = oldLink['distance'];
-        newLink.distanceOrigin = oldLink.distanceOrigin;
+        newLink.distanceOrigin = oldLink.distanceOrigin
       }
       oldLink["origin"] = myorigin;
       newLink["origin"] = myorigin;
 
       Object.assign(newLink, oldLink);
 
-      // _.merge(oldLink, newLink);
-
-      // Object.assign(oldLink, newLink);
-      // Object.assign(newLink, oldLink);
-
-
-
-      // if("" + newLink.source == "3003" && "" + newLink.target == "1703") {
-      //   console.log("add new2: ", _.cloneDeep(newLink));
-      //   console.log("add old2: ", _.cloneDeep(oldLink));
-      // }
-
       if(newLink["bidirectional"]){
+        console.log('is bidirectional');
         oldLink["bidirectional"] = newLink["bidirectional"];
       }
+
       linkIsNew = 0;
 
-      // console.log('link is old: ', oldLink, newLink);
-
-      // if (oldLink.origin.length == 1  && oldLink.origin[0] == "Genetic Distance"){
-      //   oldLink.directed = false;
-      // }
-
+      console.log('link is old: ', oldLink, newLink);
     } else if(temp.matrix[newLink.target][newLink.source]){
       console.warn("This scope should be unreachable. If you're using this code, something's wrong.");
       let oldLink = temp.matrix[newLink.target][newLink.source];
       let origin = uniq(newLink.origin.concat(oldLink.origin));
       Object.assign(oldLink, newLink, {origin: origin});
+
+      if (oldLink.origin.length == 1  && oldLink.origin[0] == "Genetic Distance"){
+        oldLink.directed = false;
+      }
+
       linkIsNew = 0;
     } else {
       if (newLink.hasDistance) {
@@ -445,23 +432,16 @@
           hasDistance: false
         }, newLink);
       }
-
       if (newLink.origin.length == 1  && newLink.origin[0] == "Genetic Distance"){
         newLink.directed = false;
       } else {
         newLink.directed = true;
       }
-
       temp.matrix[newLink.source][newLink.target] = newLink;
       temp.matrix[newLink.target][newLink.source] = newLink;
       sdlinks.push(newLink);
       linkIsNew = 1;
     }
-
-    // if(newLink["bidirectional"]){
-    //   oldLink["bidirectional"] = newLink["bidirectional"];
-    // }
-
     return linkIsNew;
   };
   
@@ -592,16 +572,7 @@
           n = nodes.length,
           m = links.length;
     for(let i = 0; i < n; i++) MT.addNode(nodes[i]);
-    for (let j = 0; j < m; j++) {
-      // Add distance property for files saved prior to distance visibility fix
-      if ((links[j].origin).includes('Genetic Distance')) {
-        links[j].hasDistance = true;
-        links[j].distanceOrigin = 'Genetic Distance';
-      } else if (links[j].distance && links[j].distance > 0) {
-        links[j].hasDistance = true;
-      }
-      MT.addLink(links[j]);
-    }
+    for(let j = 0; j < m; j++) MT.addLink(links[j]);
     ['nodeFields', 'linkFields', 'clusterFields', 'nodeExclusions'].forEach(v => {
       if(oldSession.data[v]) session.data[v] = uniq(session.data[v].concat(oldSession.data[v]));
     });
@@ -752,7 +723,7 @@
         const links = data.links;
         const tl = links.length;
         for (let j = 0; j < tl; j++) {
-          nl += MT.addLink(Object.assign(links[j], { origin: origin, hasDistance: true, distanceOrigin: origin  }), check);
+          nl += MT.addLink(Object.assign(links[j], { origin: origin }), check);
         }
         console.log("CSV Matrix Merge time: ", (Date.now() - start).toLocaleString(), "ms");
         resolve({ nn, nl, tn, tl });
@@ -1026,7 +997,6 @@
               target: targetID,
               distance: dists[l++],
               origin: ['Genetic Distance'],
-              distanceOrigin: 'Genetic Distance',
               hasDistance: true,
               directed: false
             }, check);
@@ -1485,69 +1455,20 @@
     for (let i = 0; i < n; i++) {
       let link = links[i];
       let visible = true;
-      let overrideNN = false
-
-      if (link.hasDistance && !link.origin.includes(link.distanceOrigin)) {
-        link.origin.push(link.distanceOrigin);
-      }
-
-           // No distance value
       if (link[metric] == null) {
-
-        // If origin file exists for link outside of distance, keep visible
-        if (link.origin.filter(fileName => !fileName.includes(link.distanceOrigin)).length > 0) {
-          // Set visible and origin to only show the from the file outside of Distance
-          link.origin = link.origin.filter(fileName => !fileName.includes(link.distanceOrigin));
-          overrideNN = true;
-          visible = true;
-        } else {
-          link.visible = false;
-          continue;
-        }
-
+        link.visible = false;
+        continue;
       } else {
-
-        if (link.hasDistance) {
-
-          visible = link[metric] <= threshold;
-
-          if (!visible) {
-
-            // Only need to get distance origin and override if there are other files using a distance metric, otherwise the else code block below would be exectued since the link would not have distance
-            if (link.origin.length > 1 && link.origin.filter(fileName => !fileName.includes(link.distanceOrigin)).length > 0) {
-              // Set visible and origin to only show the from the file outside of Distance
-              link.origin = link.origin.filter(fileName => !fileName.includes(link.distanceOrigin));
-              overrideNN = true;
-              visible = true;
-            }
-          }
-
-        } else {
-
-          // If has no distance, then link should be visible and unnaffected by NN
-          overrideNN = true;
-          visible = true;
-
-        }
-
+        visible = link[metric] <= threshold;
       }
-
-      if (visible && showNN && !overrideNN) {
+      if (showNN) {
         visible = visible && link.nn;
-        // Keep link visible of not nearest neighbor, but still connected via an edge list
-        if (!visible && link.origin.filter(fileName => !fileName.includes(link.distanceOrigin)).length > 0) {
-          link.origin = link.origin.filter(fileName => !fileName.includes(link.distanceOrigin));
-          visible = true;
-        }
       }
-
       let cluster = clusters[link.cluster];
       if (cluster) {
         visible = visible && cluster.visible;
       }
-
       link.visible = visible;
-
     }
     if (!silent) $window.trigger("link-visibility");
     console.log("Link Visibility Setting time:", (Date.now() - start).toLocaleString(), "ms");
@@ -1735,6 +1656,8 @@
         new Array(values.length - session.style.nodeAlphas.length).fill(1)
       );
     }
+
+    let keys = Object.keys(session.style.nodeColorsTableHistory)
 
     // If same shape variable and value inserted/removed into table
     if (!_.isEqual(session.style.widgets["original-node-color-values"], values) ) {
