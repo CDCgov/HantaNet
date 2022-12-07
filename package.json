@@ -52,7 +52,7 @@
     "gzipper": "^2.10.4"
   },
   "devDependencies": {
-    "3d-force-graph": "^1.62.1",
+    "3d-force-graph": "^1.70.17",
     "acorn": "^6.4.1",
     "alertifyjs": "^1.13.1",
     "alignment-viewer": "^0.3.2",
