@@ -215,6 +215,8 @@ $(function() {
     .parent()
     .on("click", () => {
       $("#filtering-epsilon-row").slideUp();
+      // console.log("compute mst", MT.computeMST());
+      // session.style.widgets["compute-mst"] = false;
       session.style.widgets["link-show-nn"] = false;
       updateNetwork();
     });
