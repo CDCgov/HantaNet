@@ -1018,6 +1018,7 @@
     let start = Date.now();
     return new Promise(resolve => {
       let labels = session.data.nodes.map(d => d._id);
+      labels = labels.sort();
       let metric = session.style.widgets['link-sort-variable'];
       const n = labels.length;
       let dm = new Array(n);
@@ -1058,7 +1059,7 @@
       };
       MT.getDM().then(dm => {
         computer.postMessage({
-          labels: Object.keys(temp.matrix),
+          labels: Object.keys(temp.matrix).sort(),
           matrix: dm,
           round: session.style.widgets["tree-round"]
         });
