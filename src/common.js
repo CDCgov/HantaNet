@@ -366,7 +366,6 @@
   };
   
   MT.addLink = newLink => {
-    console.log('adding linke: ', newLink);
     if(!temp.matrix[newLink.source]){
       temp.matrix[newLink.source] = {};
     }

@@ -3,17 +3,17 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="application-name" content="MicrobeTrace">
-  <meta name="Description" content="MicrobeTrace is an interactive web application that renders existing data from high-risk contact networks in an easy-to-use Graphical User Interface (GUI). The network visualization can be customized according to supplemental data sources and mathematical inferences like the most probable transmission pathways. MicrobeTrace is a highly responsive, visual sequence analytics tool which can reduce the gap between data production and analytics and help you to discover, understand, and display relationships (links) between patients (nodes). MicrobeTrace can be deployed on laptops to locations without any Internet access, thereby reducing both the startup cost and analysis time and effort.">
+  <meta name="application-name" content="HantaNet">
+  <meta name="Description" content="HantaNet is an interactive web application that renders existing data to classify Hantavirus sequences">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f9fa">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="msapplication-TileColor" content="#ffc40d">
   <meta name="apple-mobile-web-app-title" content="MicrobeTrace">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com/ https://www.googletagmanager.com* googletagmanager.com *.google-analytics.com stats.g.doubleclick.net  stamen-tiles-a.a.ssl.fastly.net stamen-tiles-b.a.ssl.fastly.net stamen-tiles-c.a.ssl.fastly.net *.cdc.gov unpkg.com; img-src 'self' googletagmanager.com *.google-analytics.com *.doubleclick.net www.google.com api.mapbox.com stamen-tiles-a.a.ssl.fastly.net stamen-tiles-b.a.ssl.fastly.net stamen-tiles-c.a.ssl.fastly.net a.tile.openstreetmap.org b.tile.openstreetmap.org c.tile.openstreetmap.org osmap.a.tile.mapcdn.net osmap.b.tile.mapcdn.net osmap.c.tile.mapcdn.net data:; style-src 'self' 'unsafe-inline'; manifest-src 'self'; font-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' googletagmanager.com *.googletagmanager.com *.google-analytics.com tiles.stadiamaps.com; connect-src 'self' googletagmanager.com *.googletagmanager.com *.google-analytics.com stats.g.doubleclick.net  stamen-tiles-a.a.ssl.fastly.net stamen-tiles-b.a.ssl.fastly.net stamen-tiles-c.a.ssl.fastly.net *.cdc.gov unpkg.com tiles.stadiamaps.com ; img-src 'self' googletagmanager.com *.googletagmanager.com *.google-analytics.com *.doubleclick.net www.google.com api.mapbox.com stamen-tiles-a.a.ssl.fastly.net stamen-tiles-b.a.ssl.fastly.net stamen-tiles-c.a.ssl.fastly.net a.tile.openstreetmap.org b.tile.openstreetmap.org c.tile.openstreetmap.org osmap.a.tile.mapcdn.net osmap.b.tile.mapcdn.net osmap.c.tile.mapcdn.net tiles.stadiamaps.com data:; style-src 'self' 'unsafe-inline'; manifest-src 'self'; font-src 'self';">
   <title>MicrobeTrace</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="canonical" href="https://microbetrace.cdc.gov/MicrobeTrace/">
+  <link rel="canonical" href="https://cdcgov.github.io/HantaNet/">
   <link rel="author" type="text/plain" href="humans.txt">
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon.ico">
@@ -50,7 +50,7 @@
 <body>
   <div class="d-none">
     <h1>Sorry!</h1>
-    <h4>MicrobeTrace requires CSS to run, but it looks like the appropriate CSS files weren't loaded for some reason.
+    <h4>HantaNet requires CSS to run, but it looks like the appropriate CSS files weren't loaded for some reason.
       Please try <a href="#" onclick="location.reload();">Refreshing the Page</a></h4>
   </div>
 
@@ -148,7 +148,7 @@
   </nav>
 
   <div id="ie-warning">
-    This application does not support Internet Explorer. To use MicrobeTrace, please switch to one of the following browsers:<br>
+    This application does not support Internet Explorer. To use HantaNet, please switch to one of the following browsers:<br>
     <a href='https://support.google.com/chrome/answer/95346'>Chrome</a>/
     <a href='https://www.opera.com/'>Opera</a>/
     <a href='https://www.mozilla.org/en-US/firefox/new/'>Firefox</a>
@@ -228,7 +228,7 @@ performance of this software.</pre>
     <noscript class="container-fluid">
       <div class="jumbotron">
         <h1>Sorry!</h1>
-        <p class="lead">MicrobeTrace requires Javascript to run. Please <a href="https://www.enable-javascript.com/">enable Javascript</a> and refresh MicrobeTrace.</p>
+        <p class="lead">HantaNet requires Javascript to run. Please <a href="https://www.enable-javascript.com/">enable Javascript</a> and refresh MicrobeTrace.</p>
       </div>
     </noscript>
     <div id="global-timeline-wrapper" style="display: none;">
@@ -664,15 +664,14 @@ performance of this software.</pre>
     </div><!-- /.modal-dialog -->
   </div><!-- /.modal -->
 
-  <!-- <script async src="https://googletagmanager.com/gtag/js?id=UA-116308624-2"></script> -->
-  <!-- <script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116308624-2"></script>
+  <script>
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.protocol !== 'https:') window.location.replace('https://' + window.location.hostname + window.location.pathname);
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'UA-116308624-2');
-    window.ga('create', 'UA-116308624-2', 'auto');
-  </script> -->
+  </script>
   <script src="dist/bundle.primary.js" charset="utf-8"></script>
   <script src="src/common.js" async charset="utf-8"></script>
   <script src="src/index.js" async charset="utf-8"></script>

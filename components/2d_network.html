@@ -604,9 +604,6 @@ Note that this may cause slow performance on larger networks.">
 
 <script>
   (() => {
-    ga('set', 'page', '/2d_network');
-    ga('set', 'title', '2D View');
-    ga('send', 'pageview');
 
     // Stores array of custom symbols from JSON
     let customSymbols = [];
@@ -2577,7 +2574,7 @@ Note that this may cause slow performance on larger networks.">
     }).trigger('input');
 
     $('#network-export').on('click', function () {
-      ga('send', 'event', '2D-network-export', 'trigger', 'on');
+        gtag('event', '2D-network-export', {'event_type': 'trigger', 'event_value': 'on'});
       let network = document.getElementById('network');
       let $network = $(network);
       let watermark = d3.select(network).append('image')

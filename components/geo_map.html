@@ -364,9 +364,6 @@
 
 <script>
   (function () {
-    ga('set', 'page', '/geo_map');
-    ga('set', 'title', 'Geo Map View');
-    ga('send', 'pageview');
 
     if (session.data.nodes.length > 0) {
     // save existing session styles
@@ -460,7 +457,7 @@
         var val = session.style.widgets['map-field-country'];
         nodes.forEach(n => {
           var country = temp.mapData.countries.features.find(c => c.id == n[val] || c.properties.name == n[val]);
-          if (country) {
+          if (country && n[val] !== null) {
             n._lat = country.properties._lat,
               n._lon = country.properties._lon
           }
