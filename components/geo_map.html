@@ -408,7 +408,7 @@
     }
 
     var map = L.map('map', {
-      center: [0, -20],
+      center: [60, 0],
       zoom: 3,
       zoomControl: false,
       maxZoom: 15,
@@ -432,6 +432,13 @@
           drawNodes();
           drawLinks();
           resetStack();
+          if(v == 'zipcode') {
+            // Center bounds on US
+            map.flyToBounds([[42, -132.172327], [37, -60.990389]]);            
+          } else {
+            map.flyToBounds(layers.nodes.getBounds());
+
+          }
         });
       });
       if (session.data.nodeFields.includes(v)) s.val(v);
