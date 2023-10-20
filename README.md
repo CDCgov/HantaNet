@@ -4,7 +4,7 @@
 *The Visualization Multitool for Molecular Epidemiology and Bioinformatics - with focus on the Hanta Virus*
 ([Hantanet](https://cdcgov.github.io/HantaNet/) is a standalone Hantavirus data visualization engine, powered by MicrobeTrace, a free, secure web-browser based visualization tool that facilitates the integration and analysis of surveillance, epidemiologic and genetic data.Hantanet enables hantavirus data submission, analysis and visualization to improve hantavirus domestic surveillance, standardize and modernize diagnostics, case reporting and data sharing between the CDC and academic institutions, state and public health labs.
 
-Developed By ([some folks](https://github.com/CDCgov/MicrobeTrace/blob/master/humans.txt) at) CDC
+Developed By ([some folks](https://github.com/CDCgov/HantaNet/wiki/Acknowledgements) at) CDC
 
 ## Access Request, Repo Creation Request
 
